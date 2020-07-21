@@ -5,6 +5,14 @@ const baseConfig = require('./webpack.config.base')
 module.exports = [
   merge(baseConfig, {
     mode: 'development',
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
+        },
+      ]
+    },
     devServer: {
       writeToDisk: true,
       port: 3000,
