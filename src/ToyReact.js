@@ -14,6 +14,7 @@ class ElementWrapper {
   }
 
   mountTo(range) {
+    this.range = range
     range.deleteContents()
     const element = document.createElement(this.type)
 
