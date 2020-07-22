@@ -1,7 +1,10 @@
+const childrenSymbol = Symbol("children")
+
 class ElementWrapper {
   constructor(type) {
     this.type = type
     this.props = Object.create(null)
+    this[childrenSymbol] = []
     this.children = []
   }
 
@@ -10,11 +13,23 @@ class ElementWrapper {
   }
 
   appendChild(vchild) {
-    this.children.push(vchild)
+    this[childrenSymbol].push(vchild)
+    this.children.push(vchild.vdom)
+  }
+
+  get vdom() {
+    return this
   }
 
   mountTo(range) {
     this.range = range
+
+    const placeholder = document.createComment("placeholder")
+    const endRange = document.createRange()
+    endRange.setStart(range.endContainer, range.endOffset)
+    endRange.setEnd(range.endContainer, range.endOffset)
+    endRange.insertNode(placeholder)
+
     range.deleteContents()
     const element = document.createElement(this.type)
 
@@ -64,6 +79,10 @@ class TextWrapper {
     range.deleteContents()
     range.insertNode(this.root)
   }
+
+  get vdom() {
+    return this
+  }
 }
 
 export class Component {
@@ -88,7 +107,7 @@ export class Component {
 
   update() {
     const vdom = this.render()
-    if (this.vdom) {
+    if (this.oldVdom) {
       const isSameNode = (node1, node2) => {
         if (node1.type !== node2.type) {
           return false
@@ -137,7 +156,7 @@ export class Component {
         return true
       }
 
-      const replace = (newTree, oldTree, indent) => {
+      const replace = (newTree, oldTree) => {
         if (isSameTree(newTree, oldTree)) {
           return
         }
@@ -146,16 +165,20 @@ export class Component {
           newTree.mountTo(oldTree.range)
         } else {
           for (let index = 0; index < newTree.children.length; index++) {
-            replace(newTree.children[index], oldTree.children[index], "  " + indent)
+            replace(newTree.children[index], oldTree.children[index])
           }
         }
       }
 
-      replace(vdom, this.vdom, "")
+      replace(vdom, this.oldVdom)
     } else {
       vdom.mountTo(this.range)
     }
-    this.vdom = vdom
+    this.oldVdom = vdom
+  }
+
+  get vdom() {
+    return this.render().vdom
   }
 
   appendChild(vchild) {
