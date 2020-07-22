@@ -1,37 +1,52 @@
 class ElementWrapper {
   constructor(type) {
-    this.root = document.createElement(type)
+    this.type = type
+    this.props = Object.create(null)
+    this.children = []
   }
 
   setAttribute(name, value) {
-    if (name.match(/^on([\w]+)$/)) {
-      const eventName = RegExp.$1.replace(/^[\w]/, s => s.toLowerCase())
-      this.root.addEventListener(eventName, value)
-    }
-
-    if (name === "className") {
-      name = "class"
-    }
-
-    this.root.setAttribute(name, value)
+    this.props[name] = value
   }
 
   appendChild(vchild) {
-    const range = document.createRange()
-    if (this.root.children.length) {
-      range.setStartAfter(this.root.lastChild)
-      range.setEndAfter(this.root.lastChild)
-    } else {
-      range.setStart(this.root, 0)
-      range.setEnd(this.root, 0)
-    }
-
-    vchild.mountTo(range)
+    this.children.push(vchild)
   }
 
   mountTo(range) {
     range.deleteContents()
-    range.insertNode(this.root)
+    const element = document.createElement(this.type)
+
+    for (const name in this.props) {
+      // if (this.props.hasOwnProperty(name)) {
+      const value = this.props[name]
+
+      if (name.match(/^on([\w]+)$/)) {
+        const eventName = RegExp.$1.replace(/^[\w]/, s => s.toLowerCase())
+        element.addEventListener(eventName, value)
+      }
+
+      if (name === "className") {
+        element.setAttribute("class", value)
+      }
+
+      element.setAttribute(name, value)
+      // }
+    }
+
+    for (const child of this.children) {
+      const range = document.createRange()
+      if (element.children.length) {
+        range.setStartAfter(element.lastChild)
+        range.setEndAfter(element.lastChild)
+      } else {
+        range.setStart(element, 0)
+        range.setEnd(element, 0)
+      }
+      child.mountTo(range)
+    }
+
+    range.insertNode(element)
   }
 }
 
