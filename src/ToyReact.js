@@ -114,11 +114,11 @@ export class Component {
         }
 
         for (const name in node1.props) {
-          if (typeof node1.props[name] === "function"
-            && typeof node2.props[name] === "function"
-            && node1.props[name].toString() === node2.props[name].toString()) {
-            continue
-          }
+          // if (typeof node1.props[name] === "function"
+          //   && typeof node2.props[name] === "function"
+          //   && node1.props[name].toString() === node2.props[name].toString()) {
+          //   continue
+          // }
 
           if (typeof node1.props[name] === "object"
             && typeof node2.props[name] === "object"
